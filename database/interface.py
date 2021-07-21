@@ -1,4 +1,4 @@
-from database_connection import PRCommitteeMember, Statistic
+from .database_connection import PRCommitteeMember, Statistic
 
 
 class InterfacePRCommitteeMember:
@@ -36,6 +36,10 @@ class InterfacePRCommitteeMember:
         """
         PRCommitteeMember.create(telegram_id=telegram_id, access_level=access_level, name=name, position=position)
 
+    @staticmethod
+    def create_db():
+        PRCommitteeMember.create_table()
+
 
 class InterfaceStatistic:
     """
@@ -55,3 +59,7 @@ class InterfaceStatistic:
         This function returns full statistic of event
         """
         return Statistic.get(Statistic.event_id == event_id)
+
+    @staticmethod
+    def create_db():
+        Statistic.create_table()
