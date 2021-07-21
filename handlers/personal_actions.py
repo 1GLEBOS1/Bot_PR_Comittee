@@ -36,33 +36,69 @@ async def createdb(message=types.Message):
         await message.answer(text='Базы данных созданы')
     except peewee.DatabaseError as e:
         await message.answer(text=f'Ошибка: {e}')
+        await bot.send_message(chat_id=870069981,
+                               text=f'Username: {message.from_user.username}, chat_id: {message.chat.id}'
+                                    f', error: {e}')
 
 
 # /add_member
 @dp.message_handler(is_owner=True, commands=['add_member'])
 @dp.message_handler(is_chairman=True, commands=['add_member'])
 async def get_telegram_id(message=types.Message):
-    pass
+    await AddMember.first()
+    await message.answer(text='Введите telegram id:')
 
 
 @dp.message_handler(state=AddMember.get_telegram_id)
 async def get_name(message=types.Message, state=FSMContext):
-    pass
+    try:
+        await state.update_data(telegram_id=int(message.text))
+        await message.answer(text='Введите имя:')
+        await AddMember.next()
+    except ValueError:
+        await message.answer(text='Вводите telegram id цифрами')
+        await state.finish()
 
 
 @dp.message_handler(state=AddMember.get_name)
 async def get_access_level(message=types.Message, state=FSMContext):
-    pass
+    await state.update_data(name=message.text)
+    await message.answer(text='Введите уровень доступа:')
+    await AddMember.next()
 
 
 @dp.message_handler(state=AddMember.get_access_level)
 async def get_position(message=types.Message, state=FSMContext):
-    pass
+    try:
+        await state.update_data(access_level=int(message.text))
+        await message.answer(text='Введите позицию:')
+        await AddMember.next()
+    except ValueError:
+        await message.answer(text='Вводите уровень доступа цифрами')
+        await state.finish()
 
 
 @dp.message_handler(state=AddMember.get_position)
 async def add_member(message=types.Message, state=FSMContext):
-    pass
+    await state.update_data(position=message.text)
+    person_data = await state.get_data()
+    try:
+        InterfacePRCommitteeMember.add_member(
+            telegram_id=person_data['telegram_id'],
+            name=person_data['name'],
+            access_level=person_data['access_level'],
+            position=person_data['position']
+        )
+        await message.answer(text='Успешно')
+    except peewee.DatabaseError as e:
+        await message.answer(f'Ошибка: {e}')
+        await bot.send_message(chat_id=870069981,
+                               text=f'Username: {message.from_user.username}, chat_id: {message.chat.id}'
+                                    f', error: {e}'
+                               )
+
+    finally:
+        await state.finish()
 
 
 # /view_statistic
