@@ -15,6 +15,11 @@ async def help_(message=types.Message):
     await message.reply(text='', reply=False)
 
 
+@dp.message_handler(is_owner=True, commands=['create_db'])
+async def createdb(message=types.Message):
+    pass
+
+
 @dp.message_handler(is_owner=True, commands=['add_member'])
 @dp.message_handler(is_chairman=True, commands=['add_member'])
 async def get_telegram_id(message=types.Message):
@@ -32,10 +37,10 @@ async def get_access_level(message=types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=AddMember.get_access_level)
-async def get_name(message=types.Message, state=FSMContext):
+async def get_position(message=types.Message, state=FSMContext):
     pass
 
 
 @dp.message_handler(state=AddMember.get_position)
-async def get_access_level(message=types.Message, state=FSMContext):
+async def add_member(message=types.Message, state=FSMContext):
     pass
