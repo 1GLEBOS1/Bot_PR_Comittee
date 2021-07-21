@@ -1,7 +1,7 @@
 from aiogram import types
 from aiogram.dispatcher.storage import FSMContext
 from dispatcher import dp
-from finete_state_machine import AddMember
+from finete_state_machine import AddMember, ViewStatistic
 
 
 @dp.message_handler(commands=['start'])
@@ -43,4 +43,16 @@ async def get_position(message=types.Message, state=FSMContext):
 
 @dp.message_handler(state=AddMember.get_position)
 async def add_member(message=types.Message, state=FSMContext):
+    pass
+
+
+#
+@dp.message_handler(is_chairman=True, commands=['view_statistic'])
+@dp.message_handler(is_owner=True, commands=['view_statistic'])
+async def view_get_event_id(message=types.Message):
+    pass
+
+
+@dp.message_handler(state=ViewStatistic.get_event_id)
+async def view_statistic(message=types.Message, state=FSMContext):
     pass
