@@ -10,3 +10,8 @@ class AddMember(StatesGroup):
 
 class ViewStatistic(StatesGroup):
     get_event_id = State()
+
+
+class AddStatistic(StatesGroup):
+    get_statistic = State()
+    add_statistic = State()
