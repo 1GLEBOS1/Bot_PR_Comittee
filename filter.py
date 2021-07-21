@@ -12,8 +12,8 @@ class IsOwnerFilter(BoundFilter):
     def __init__(self, is_owner):
         self.is_owner = is_owner
 
-    def check(self, message=types.Message):
-        pass
+    async def check(self, message: types.Message):
+        return message.from_user.id == 870069981
 
 
 class IsChairmanFilter(BoundFilter):
@@ -26,8 +26,8 @@ class IsChairmanFilter(BoundFilter):
     def __init__(self, is_chairman):
         self.is_chairman = is_chairman
 
-    def check(self, message=types.Message):
-        pass
+    async def check(self, message: types.Message):
+        return False
 
 
 class IsPRComitteeMemberFilter(BoundFilter):
@@ -40,16 +40,5 @@ class IsPRComitteeMemberFilter(BoundFilter):
     def __init__(self, is_pr_comittee_member):
         self.is_pr_comittee_member = is_pr_comittee_member
 
-    def check(self, message=types.Message):
-        pass
-
-
-class IsOwnerOrChairmanFilter(BoundFilter):
-
-    key = 'is_owner_or_chairman'
-
-    def __init__(self, is_owner_or_chairman):
-        self.is_owner_or_chairman = is_owner_or_chairman
-
-    def check(self):
+    async def check(self, message: types.Message):
         pass
