@@ -6,3 +6,7 @@ class AddMember(StatesGroup):
     get_name = State()
     get_access_level = State()
     get_position = State()
+
+
+class ViewStatistic(StatesGroup):
+    get_event_id = State()
