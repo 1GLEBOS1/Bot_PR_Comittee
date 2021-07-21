@@ -35,3 +35,23 @@ class InterfacePRCommitteeMember:
         This function adds statistic to database
         """
         PRCommitteeMember.create(telegram_id=telegram_id, access_level=access_level, name=name, position=position)
+
+
+class InterfaceStatistic:
+    """
+    This class is interface of table Statistic
+    """
+
+    @staticmethod
+    def add_statistic(statistic: str, author_id: int, event_id: int):
+        """
+        This function adds statistic to database
+        """
+        Statistic.create(author_id=author_id, event_id=event_id, statistic=statistic)
+
+    @staticmethod
+    def get_statistic(event_id: int):
+        """
+        This function returns full statistic of event
+        """
+        return Statistic.get(Statistic.event_id == event_id)
