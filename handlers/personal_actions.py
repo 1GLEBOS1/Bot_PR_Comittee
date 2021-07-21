@@ -117,15 +117,35 @@ async def view_add_statistic(message=types.Message, state=FSMContext):
 @dp.message_handler(is_pr_comittee_member=True, commands=['add_statistic'])
 @dp.message_handler(is_chairman=True, commands=['add_statistic'])
 @dp.message_handler(is_owner=True, commands=['add_statistic'])
-async def get_event_id(message=types.Message):
-    pass
+async def get_event_id(message=types.Message, state=FSMContext):
+    await AddStatistic.first()
+    await state.update_data(author_id=message.from_user.id)
+    await message.answer(text='Введите id мероприятия')
 
 
 @dp.message_handler(state=AddStatistic.get_statistic)
 async def get_statistic(message=types.Message, state=FSMContext):
-    pass
+    try:
+        await state.update_data(event_id=int(message.text))
+        await message.answer(text='Введите статистику')
+        await AddStatistic.next()
+    except ValueError:
+        await message.answer(text='Вводите id мероприятия цифрами')
+        await state.finish()
 
 
 @dp.message_handler(state=AddStatistic.add_statistic)
 async def add_statistic_to_database(message=types.Message, state=FSMContext):
-    pass
+    await state.update_data(statistic=message.text)
+    statistic_data = await state.get_data()
+    try:
+        InterfaceStatistic.add_statistic(statistic=statistic_data['statistic'], author_id=statistic_data['author_id'],
+                                         event_id=statistic_data['event_id'])
+        await message.answer('Успешно')
+    except peewee.DatabaseError as e:
+        await message.answer(f'Ошибка: {e}')
+        await bot.send_message(chat_id=870069981,
+                               text=f'Username: {message.from_user.username}, chat_id: {message.chat.id}'
+                                    f', error: {e}')
+    finally:
+        await state.finish()
