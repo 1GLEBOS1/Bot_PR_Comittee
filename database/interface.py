@@ -10,24 +10,25 @@ class InterfacePRCommitteeMember:
         """
         This function returns telegram id of owner from database
         """
-        return PRCommitteeMember.get(PRCommitteeMember.access_level == 1).telegram_id
+        owner = PRCommitteeMember.get(PRCommitteeMember.access_level == 5)
+        return owner.telegram_id
 
     @staticmethod
     def get_chairman_id():
         """
         This function returns telegram id of chairman from database
         """
-        return PRCommitteeMember.get(PRCommitteeMember.access_level == 2).telegram_id
+        chairman = PRCommitteeMember.get(PRCommitteeMember.access_level == 4)
+        return chairman.telegram_id
 
     @staticmethod
-    def get_pr_mamber_ids():
+    def get_pr_mambers_id():
         """
         This function returns list of telegram id pr men from database
         """
-        pr_mans = PRCommitteeMember.select().where(PRCommitteeMember.access_level == 3).get()
-        for i in range(len(pr_mans)):
-            pr_mans[i] = pr_mans[i].telegram_id
-        return pr_mans
+        pr_mans = PRCommitteeMember.select().where(PRCommitteeMember.access_level == 3)
+        telegram_ids = [person.telegram_id for person in pr_mans]
+        return telegram_ids
 
     @staticmethod
     def add_member(telegram_id: int, name: str, access_level: int, position):
