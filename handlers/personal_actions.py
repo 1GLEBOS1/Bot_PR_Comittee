@@ -4,6 +4,7 @@ from aiogram.dispatcher.storage import FSMContext
 from dispatcher import dp, bot
 from finete_state_machine import AddMember, ViewStatistic, AddStatistic
 from database.interface import InterfaceStatistic, InterfacePRCommitteeMember
+from statistic_analyser.analyser import Analyser
 
 
 # /start
@@ -18,6 +19,7 @@ async def help_(message=types.Message):
     await message.answer(text='Заглушка')
 
 
+#/debug
 @dp.message_handler(commands=['debug'], state='*')
 async def cancel(message=types.Message, state=FSMContext):
     current_state = await state.get_state()
@@ -105,12 +107,22 @@ async def add_member(message=types.Message, state=FSMContext):
 @dp.message_handler(is_chairman=True, commands=['view_statistic'])
 @dp.message_handler(is_owner=True, commands=['view_statistic'])
 async def view_get_event_id(message=types.Message):
-    pass
+    await message.answer(text='Введите id мероприятия')
+    await ViewStatistic.first()
 
 
 @dp.message_handler(state=ViewStatistic.get_event_id)
 async def view_add_statistic(message=types.Message, state=FSMContext):
-    pass
+    try:
+        await state.update_data(event_id=int(message.text))
+        get_data = await state.get_data()
+        a = Analyser()
+        await message.answer(text=a.get_stats(event_id=get_data["event_id"]))
+        del a
+    except ValueError:
+        await message.answer(text='Вводите id мероприятия цифрами')
+    finally:
+        await state.finish()
 
 
 # /add_statistic
