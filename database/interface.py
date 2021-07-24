@@ -59,7 +59,9 @@ class InterfaceStatistic:
         """
         This function returns full statistic of event
         """
-        return Statistic.get(Statistic.event_id == event_id)
+        raw_data = Statistic.select().where(Statistic.event_id == event_id)
+        output_data = [data for data in raw_data]
+        return output_data
 
     @staticmethod
     def create_db():
