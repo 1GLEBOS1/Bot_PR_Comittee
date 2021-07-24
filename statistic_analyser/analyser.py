@@ -18,6 +18,8 @@ class Analyser:
 
         # Getting raw data
         data = InterfaceStatistic.get_statistic(event_id)
+        if len(data) == 0:
+            return None
 
         # Create output format
         output_data = []
@@ -33,56 +35,61 @@ class Analyser:
         # Getting raw data
         statistics = self.get_data_from_database(event_id)
 
-        # Create output format
-        data = [
-            {
-                'Паблики': 0,
-                'Общее количество': 0,
-                'Ответивших': 0,
-                'Зарегистрировавшихся': 0
-            },
+        if statistics is not None:
+            # Create output format
+            data = [
+                {
+                    'Паблики': 0,
+                    'Общее количество': 0,
+                    'Ответивших': 0,
+                    'Зарегистрировавшихся': 0
+                },
+                {
+                    'Знакомые': 0,
+                    'Общее количество': 0,
+                    'Ответивших': 0,
+                    'Зарегистрировавшихся': 0
+                }
+            ]
+            # Create output
+            for statistic in statistics:
+                statistic = statistic.split(sep='\n')
 
-            {
-                'Знакомые': 0,
-                'Общее количество': 0,
-                'Ответивших': 0,
-                'Зарегистрировавшихся': 0
-            }
-                ]
+                for i in range(len(statistic)):
+                    statistic[i] = statistic[i].split(sep=':')
+                    statistic[i][1] = int(statistic[i][1])
 
-        # Create output
-        for statistic in statistics:
-            statistic = statistic.split(sep='\n')
+                for i in range(len(statistic)):
+                    key, value = statistic[i]
+                    if i == 0:
+                        if value > data[0][key]:
+                            data[0].update({key: value})
+                        elif 1 <= i <= 3:
+                            data[0].update({key: data[0][key] + value})
+                    elif 4 <= i <= 7:
+                        data[1].update({key: data[1][key] + value})
 
-            for i in range(len(statistic)):
-                statistic[i] = statistic[i].split(sep=':')
-                statistic[i][1] = int(statistic[i][1])
-
-            for i in range(len(statistic)):
-                key, value = statistic[i]
-                if i == 0:
-                    if value > data[0][key]:
-                        data[0].update({key: value})
-                elif 1 <= i <= 3:
-                    data[0].update({key: data[0][key] + value})
-                elif 4 <= i <= 7:
-                    data[1].update({key: data[1][key] + value})
-        return data
+            return data
+        else:
+            return None
 
     def get_stats(self, event_id: int):
 
         data = self.get_data(event_id=event_id)
 
-        output = ''
+        if data is not None:
+            output = ''
 
-        for i in range(len(data)):
+            for i in range(len(data)):
 
-            for key, value in data[i].items():
+                for key, value in data[i].items():
 
-                output += f'{key}: {value}\n'
+                    output += f'{key}: {value}\n'
 
-            if i == 0:
+                if i == 0:
 
-                output += '\n'
+                    output += '\n'
 
-        return output
+            return output
+        else:
+            return 'Нет статистики'
