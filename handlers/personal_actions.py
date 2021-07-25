@@ -16,15 +16,17 @@ async def start(message=types.Message):
 # /help
 @dp.message_handler(commands=['help'])
 async def help_(message=types.Message):
-    await message.answer(text='Заглушка')
+    await message.answer(text='Это бот для внутреннего использования Комитета ПИАРа Ученического совета г.Краснодар.\n'
+                              'Этот бот умеет собирать статистику по пиару мероприятий.\n'
+                              'Если у Вас есть вопросы, пишите их @Gleb_Polyakov')
 
 
-#/debug
+# /debug
 @dp.message_handler(commands=['debug'], state='*')
 async def cancel(message=types.Message, state=FSMContext):
     current_state = await state.get_state()
     await message.answer(text='Машина состояний сброшена, наши программисты уже работают над исправлением ошибки')
-    await bot.send_message(chat_id=870069981, text=f'Username: {message.from_user.username}, chat_id: {message.chat.id}'
+    await bot.send_message(chat_id=-554348036, text=f'Username: {message.from_user.username}, chat_id: {message.chat.id}'
                                                    f', state: {current_state}')
     await state.finish()
 
