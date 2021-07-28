@@ -155,12 +155,12 @@ async def add_statistic_to_database(message=types.Message, state=FSMContext):
     statistic_data = await state.get_data()
     try:
         InterfaceStatistic.add_statistic(statistic=statistic_data['statistic'], author_id=statistic_data['author_id'],
-                                        event_id=statistic_data['event_id'])
+                                         event_id=statistic_data['event_id'])
         await message.answer('Успешно')
     except peewee.DatabaseError as e:
         await message.answer(f'Ошибка: {e}')
         await bot.send_message(chat_id=870069981,
-                                text=f'Username: {message.from_user.username}, chat_id: {message.chat.id}'
+                               text=f'Username: {message.from_user.username}, chat_id: {message.chat.id}'
                                     f', error: {e}')
     finally:
         await state.finish()
