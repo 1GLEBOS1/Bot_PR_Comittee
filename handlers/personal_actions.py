@@ -164,3 +164,8 @@ async def add_statistic_to_database(message=types.Message, state=FSMContext):
                                     f", error: {e}")
     finally:
         await state.finish()
+
+
+@dp.message_handler(is_owner=True, commands=["view_members"])
+async def view_members(message: types.Message):
+    await message.answer(text=InterfacePRCommitteeMember.get_members())

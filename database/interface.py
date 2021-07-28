@@ -41,6 +41,15 @@ class InterfacePRCommitteeMember:
     def create_db():
         PRCommitteeMember.create_table()
 
+    @staticmethod
+    def get_members():
+        members = PRCommitteeMember.select().where(PRCommitteeMember.id != 0)
+        output = ""
+        for member in members:
+            output += f"id: {member.id}, tg id: {member.telegram_id}, name: {member.name} " \
+                      f"access level: {member.access_level}, position: {member.position}\n"
+        return output
+
 
 class InterfaceStatistic:
     """
