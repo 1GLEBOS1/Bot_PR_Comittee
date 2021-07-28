@@ -26,8 +26,9 @@ async def help_(message=types.Message):
 async def cancel(message=types.Message, state=FSMContext):
     current_state = await state.get_state()
     await message.answer(text='Машина состояний сброшена, наши программисты уже работают над исправлением ошибки')
-    await bot.send_message(chat_id=-554348036, text=f'Username: {message.from_user.username}, chat_id: {message.chat.id}'
-                                                   f', state: {current_state}')
+    await bot.send_message(chat_id=-554348036, text=f'Username: {message.from_user.username}, '
+                                                    f'chat_id: {message.chat.id}, '
+                                                    f'state: {current_state}')
     await state.finish()
 
 
@@ -40,9 +41,9 @@ async def createdb(message=types.Message):
         await message.answer(text='Базы данных созданы')
     except peewee.DatabaseError as e:
         await message.answer(text=f'Ошибка: {e}')
-        await bot.send_message(chat_id=870069981,
-                               text=f'Username: {message.from_user.username}, chat_id: {message.chat.id}'
-                                    f', error: {e}')
+        await bot.send_message(chat_id=870069981, text=f'Username: {message.from_user.username}, '
+                                                       f'chat_id: {message.chat.id}'
+                                                       f', error: {e}')
 
 
 # /add_member
@@ -97,9 +98,9 @@ async def add_member(message=types.Message, state=FSMContext):
     except peewee.DatabaseError as e:
         await message.answer(f'Ошибка: {e}')
         await bot.send_message(chat_id=870069981,
-                               text=f'Username: {message.from_user.username}, chat_id: {message.chat.id}'
+                                text=f'Username: {message.from_user.username}, chat_id: {message.chat.id}'
                                     f', error: {e}'
-                               )
+                                )
 
     finally:
         await state.finish()
@@ -154,12 +155,12 @@ async def add_statistic_to_database(message=types.Message, state=FSMContext):
     statistic_data = await state.get_data()
     try:
         InterfaceStatistic.add_statistic(statistic=statistic_data['statistic'], author_id=statistic_data['author_id'],
-                                         event_id=statistic_data['event_id'])
+                                        event_id=statistic_data['event_id'])
         await message.answer('Успешно')
     except peewee.DatabaseError as e:
         await message.answer(f'Ошибка: {e}')
         await bot.send_message(chat_id=870069981,
-                               text=f'Username: {message.from_user.username}, chat_id: {message.chat.id}'
+                                text=f'Username: {message.from_user.username}, chat_id: {message.chat.id}'
                                     f', error: {e}')
     finally:
         await state.finish()
