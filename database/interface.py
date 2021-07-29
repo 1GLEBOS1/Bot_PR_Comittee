@@ -80,3 +80,11 @@ class InterfaceStatistic:
     @staticmethod
     def create_db():
         Statistic.create_table()
+
+    def get_statistic_(self, event_id: int):
+        data = self.get_statistic(event_id)
+        output = ""
+        for i in data:
+            output += f"id: {i.id}, event id: {i.event_id}, author id: {i.author_id} " \
+                      f"stats: {i.statistic}\n"
+        return output

@@ -19,3 +19,7 @@ class AddStatistic(StatesGroup):
 
 class DeleteMember(StatesGroup):
     get_telegram_id = State()
+
+
+class ViewStats(StatesGroup):
+    get_event_id = State()

@@ -1,8 +1,9 @@
+import aiogram.utils.exceptions
 import peewee
 from aiogram import types
 from aiogram.dispatcher.storage import FSMContext
 from dispatcher import dp, bot
-from finete_state_machine import AddMember, ViewStatistic, AddStatistic, DeleteMember
+from finete_state_machine import AddMember, ViewStatistic, AddStatistic, DeleteMember, ViewStats
 from database.interface import InterfaceStatistic, InterfacePRCommitteeMember
 from statistic_analyser.analyser import Analyser
 
@@ -166,6 +167,8 @@ async def add_statistic_to_database(message: types.Message, state: FSMContext):
         await state.finish()
 
 
+# /view_members
+@dp.message_handler(is_chairman=True, commands=["view_members"])
 @dp.message_handler(is_owner=True, commands=["view_members"])
 async def view_members(message: types.Message):
     await message.answer(text=InterfacePRCommitteeMember.get_members())
@@ -186,5 +189,29 @@ async def delete_member(message: types.Message, state: FSMContext):
     except ValueError:
         await message.answer(text="Неудачно")
         await debug(message=message, state=state)
+    finally:
+        await state.finish()
+
+
+# /view_stats
+@dp.message_handler(is_chairman=True, commands=["view_stats"])
+@dp.message_handler(is_owner=True, commands=["view_stats"])
+async def view_stats(message: types.Message):
+    await message.answer(text="Введите event id")
+    await ViewStats.first()
+
+
+@dp.message_handler(state=ViewStats.get_event_id)
+async def view_stats_get_event_id(message: types.Message, state: FSMContext):
+    try:
+        interface = InterfaceStatistic()
+        try:
+            await message.answer(text=interface.get_statistic_(event_id=int(message.text)))
+        except aiogram.utils.exceptions.MessageTextIsEmpty:
+            await message.answer(text="Нет статистики")
+        del interface
+    except ValueError:
+        await message.answer(text="Неудачно")
+        await debug(message, state)
     finally:
         await state.finish()
