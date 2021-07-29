@@ -1,4 +1,4 @@
-from .database_connection import PRCommitteeMember, Statistic
+from .database_connection import PRCommitteeMember as PR, Statistic
 
 
 class InterfacePRCommitteeMember:
@@ -10,7 +10,7 @@ class InterfacePRCommitteeMember:
         """
         This function returns telegram id of owner from database
         """
-        owner = PRCommitteeMember.get(PRCommitteeMember.access_level == 5)
+        owner = PR.get(PR.access_level == 5)
         return owner.telegram_id
 
     @staticmethod
@@ -18,7 +18,7 @@ class InterfacePRCommitteeMember:
         """
         This function returns telegram id of chairman from database
         """
-        chairman = PRCommitteeMember.get(PRCommitteeMember.access_level == 4)
+        chairman = PR.get(PR.access_level == 4)
         return chairman.telegram_id
 
     @staticmethod
@@ -26,7 +26,7 @@ class InterfacePRCommitteeMember:
         """
         This function returns list of telegram id pr men from database
         """
-        pr_mans = PRCommitteeMember.select().where(PRCommitteeMember.access_level == 3)
+        pr_mans = PR.select().where(PR.access_level == 3)
         telegram_ids = [person.telegram_id for person in pr_mans]
         return telegram_ids
 
@@ -35,20 +35,25 @@ class InterfacePRCommitteeMember:
         """
         This function adds statistic to database
         """
-        PRCommitteeMember.create(telegram_id=telegram_id, access_level=access_level, name=name, position=position)
+        PR.create(telegram_id=telegram_id, access_level=access_level, name=name, position=position)
 
     @staticmethod
     def create_db():
-        PRCommitteeMember.create_table()
+        PR.create_table()
 
     @staticmethod
     def get_members():
-        members = PRCommitteeMember.select().where(PRCommitteeMember.id != 0)
+        members = PR.select().where(PR.id != 0)
         output = ""
         for member in members:
             output += f"id: {member.id}, tg id: {member.telegram_id}, name: {member.name} " \
                       f"access level: {member.access_level}, position: {member.position}\n"
         return output
+
+    @staticmethod
+    def delete_member(telegram_id: int):
+        member = PR.delete().where(PR.telegram_id == telegram_id)
+        member.execute()
 
 
 class InterfaceStatistic:
