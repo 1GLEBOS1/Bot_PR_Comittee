@@ -23,7 +23,9 @@ async def help_(message: types.Message):
 
 
 # /debug
-@dp.message_handler(commands=["debug"], state="*")
+@dp.message_handler(is_owner=True, commands=["debug"], state="*")
+@dp.message_handler(is_chairman=True, commands=["debug"], state="*")
+@dp.message_handler(is_pr_comittee_member=True, commands=["debug"], state="*")
 async def debug(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     await message.answer(text="Машина состояний сброшена, наши программисты уже работают над исправлением ошибки")
@@ -175,6 +177,7 @@ async def view_members(message: types.Message):
 
 
 # /delete_member
+@dp.message_handler(is_chairman=True, commands=["delete_member"])
 @dp.message_handler(is_owner=True, commands=["delete_member"])
 async def delete_member_get_tg_id(message: types.Message):
     await message.answer(text="Введите telegram id")
