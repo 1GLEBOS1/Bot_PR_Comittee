@@ -23,3 +23,8 @@ class DeleteMember(StatesGroup):
 
 class ViewStats(StatesGroup):
     get_event_id = State()
+
+
+class ChangeAuthorId(StatesGroup):
+    get_id = State()
+    get_author_id = State()
