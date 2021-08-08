@@ -115,3 +115,8 @@ class InterfaceStatistic:
             InterfacePRCommitteeMember.get_id_by_telegram_id(new_author_id)
         )
         record.save()
+
+    @staticmethod
+    def delete_statistic(id_: int):
+        stats = Statistic.get(Statistic.id == id_)
+        stats.delete_instance()

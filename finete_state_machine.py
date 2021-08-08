@@ -28,3 +28,7 @@ class ViewStats(StatesGroup):
 class ChangeAuthorId(StatesGroup):
     get_id = State()
     get_author_id = State()
+
+
+class DeleteStatistic(StatesGroup):
+    get_id = State()
