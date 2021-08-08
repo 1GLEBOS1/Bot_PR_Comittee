@@ -246,3 +246,23 @@ async def get_author_id(message: types.Message, state: FSMContext):
         await message.answer(text="Вводите id автора цифрами")
     finally:
         await state.finish()
+
+
+# /delete_statistic
+@dp.message_handler(is_owner=True, commands=["delete_statistic"])
+@dp.message_handler(is_chairman=True, commands=["delete_statistic"])
+async def delete_statistic_get_id(message: types.Message):
+    await message.answer(text="Введите id статистики")
+    await DeleteStatistic.first()
+
+
+@dp.message_handler(state=DeleteStatistic.get_id)
+async def delete_statistic(message: types.Message, state: FSMContext):
+    try:
+        InterfaceStatistic.delete_statistic(int(message.text))
+        await message.answer(text="Успешно")
+    except ValueError:
+        await message.answer(text="Вводите id цифрами")
+    finally:
+        await state.finish()
+
