@@ -1,4 +1,4 @@
-from .database_connection import PRCommitteeMember as PR, Statistic
+from .database_connection import PRCommitteeMember, Statistic
 
 
 class InterfacePRCommitteeMember:
@@ -10,7 +10,7 @@ class InterfacePRCommitteeMember:
         """
         This function returns telegram id of owner from database
         """
-        owner = PR.get(PR.access_level == 5)
+        owner = PRCommitteeMember.get(PRCommitteeMember.access_level == 5)
         return owner.telegram_id
 
     @staticmethod
@@ -18,7 +18,7 @@ class InterfacePRCommitteeMember:
         """
         This function returns telegram id of chairman from database
         """
-        chairman = PR.get(PR.access_level == 4)
+        chairman = PRCommitteeMember.get(PRCommitteeMember.access_level == 4)
         return chairman.telegram_id
 
     @staticmethod
@@ -26,7 +26,7 @@ class InterfacePRCommitteeMember:
         """
         This function returns list of telegram id pr men from database
         """
-        pr_mans = PR.select().where(PR.access_level == 3)
+        pr_mans = PRCommitteeMember.select().where(PRCommitteeMember.access_level == 3)
         telegram_ids = [person.telegram_id for person in pr_mans]
         return telegram_ids
 
@@ -35,15 +35,15 @@ class InterfacePRCommitteeMember:
         """
         This function adds statistic to database
         """
-        PR.create(telegram_id=telegram_id, access_level=access_level, name=name, position=position)
+        PRCommitteeMember.create(telegram_id=telegram_id, access_level=access_level, name=name, position=position)
 
     @staticmethod
     def create_db():
-        PR.create_table()
+        PRCommitteeMember.create_table()
 
     @staticmethod
     def get_members():
-        members = PR.select().where(PR.id != 0)
+        members = PRCommitteeMember.select().where(PRCommitteeMember.id != 0)
         output = ""
         for member in members:
             output += f"id: {member.id}, tg id: {member.telegram_id}, name: {member.name} " \
@@ -52,8 +52,18 @@ class InterfacePRCommitteeMember:
 
     @staticmethod
     def delete_member(telegram_id: int):
-        member = PR.delete().where(PR.telegram_id == telegram_id)
+        member = PRCommitteeMember.delete().where(PRCommitteeMember.telegram_id == telegram_id)
         member.execute()
+
+    @staticmethod
+    def get_telegram_id(id_: int):
+        user = PRCommitteeMember.get(PRCommitteeMember.id == id_)
+        return user.telegram_id
+
+    @staticmethod
+    def get_id_by_telegram_id(telegram_id: int):
+        user = PRCommitteeMember.get(PRCommitteeMember.telegram_id == telegram_id)
+        return user.id
 
 
 class InterfaceStatistic:
@@ -62,11 +72,12 @@ class InterfaceStatistic:
     """
 
     @staticmethod
-    def add_statistic(statistic: str, author_id: int, event_id: int):
+    def add_statistic(statistic_: str, author_id_: int, event_id_: int):
         """
         This function adds statistic to database
         """
-        Statistic.create(author_id=author_id, event_id=event_id, statistic=statistic)
+        print(author_id_, event_id_, statistic_)
+        Statistic.create(author_id=author_id_, event_id=event_id_, statistic=statistic_)
 
     @staticmethod
     def get_statistic(event_id: int):
@@ -76,6 +87,14 @@ class InterfaceStatistic:
         raw_data = Statistic.select().where(Statistic.event_id == event_id)
         output_data = [data for data in raw_data]
         return output_data
+
+    @staticmethod
+    def get_statistic_by_id(id_: int):
+        """
+        This function returns full statistic of event
+        """
+        record = Statistic.get(Statistic.id == id_)
+        return record
 
     @staticmethod
     def create_db():
@@ -88,3 +107,11 @@ class InterfaceStatistic:
             output += f"id: {i.id}, event id: {i.event_id}, author id: {i.author_id} " \
                       f"stats: {i.statistic}\n"
         return output
+
+    @staticmethod
+    def change_author_id(id_: int, new_author_id: int):
+        record = InterfaceStatistic.get_statistic_by_id(id_)
+        record.author_id = InterfacePRCommitteeMember.get_telegram_id(
+            InterfacePRCommitteeMember.get_id_by_telegram_id(new_author_id)
+        )
+        record.save()

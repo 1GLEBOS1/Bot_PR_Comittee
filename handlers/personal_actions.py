@@ -3,7 +3,7 @@ import peewee
 from aiogram import types
 from aiogram.dispatcher.storage import FSMContext
 from dispatcher import dp, bot
-from finete_state_machine import AddMember, ViewStatistic, AddStatistic, DeleteMember, ViewStats
+from finete_state_machine import *
 from database.interface import InterfaceStatistic, InterfacePRCommitteeMember
 from statistic_analyser.analyser import Analyser
 
@@ -99,10 +99,8 @@ async def add_member(message: types.Message, state: FSMContext):
     except peewee.DatabaseError as e:
         await message.answer(f"Ошибка: {e}")
         await bot.send_message(chat_id=870069981,
-                                text=f"Username: {message.from_user.username}, chat_id: {message.chat.id}"
-                                    f", error: {e}"
-                                )
-
+                               text=f"Username: {message.from_user.username}, chat_id: {message.chat.id}"
+                                    f", error: {e}")
     finally:
         await state.finish()
 
@@ -136,6 +134,7 @@ async def view_add_statistic(message: types.Message, state: FSMContext):
 async def get_event_id(message: types.Message, state: FSMContext):
     await AddStatistic.first()
     await state.update_data(author_id=message.from_user.id)
+    print(message.from_user.id)
     await message.answer(text="Введите id мероприятия")
 
 
@@ -154,9 +153,10 @@ async def get_statistic(message: types.Message, state: FSMContext):
 async def add_statistic_to_database(message: types.Message, state: FSMContext):
     await state.update_data(statistic=message.text)
     statistic_data = await state.get_data()
+    print(statistic_data["author_id"])
     try:
-        InterfaceStatistic.add_statistic(statistic=statistic_data["statistic"], author_id=statistic_data["author_id"],
-                                         event_id=statistic_data["event_id"])
+        InterfaceStatistic.add_statistic(statistic_=statistic_data["statistic"], author_id_=statistic_data["author_id"],
+                                         event_id_=statistic_data["event_id"])
         await message.answer("Успешно")
     except peewee.DatabaseError as e:
         await message.answer(f"Ошибка: {e}")
@@ -213,5 +213,36 @@ async def view_stats_get_event_id(message: types.Message, state: FSMContext):
     except ValueError:
         await message.answer(text="Неудачно")
         await debug(message, state)
+    finally:
+        await state.finish()
+
+
+# /change_statistic_author_id
+@dp.message_handler(is_chairman=True, commands=["change_statistic_author_id"])
+@dp.message_handler(is_owner=True, commands=["change_statistic_author_id"])
+async def change_author_id(message: types.Message):
+    await message.answer(text="Введите id статистики")
+    await ChangeAuthorId.first()
+
+
+@dp.message_handler(state=ChangeAuthorId.get_id)
+async def get_statistic_id(message: types.Message, state: FSMContext):
+    try:
+        await state.update_data(id=int(message.text))
+        await message.answer(text="Введите новое id автора")
+        await ChangeAuthorId.next()
+    except ValueError:
+        await message.answer(text="Вводите id цифрами")
+        await ChangeAuthorId.next()
+
+
+@dp.message_handler(state=ChangeAuthorId.get_author_id)
+async def get_author_id(message: types.Message, state: FSMContext):
+    try:
+        person_data = await state.get_data()
+        InterfaceStatistic.change_author_id(id_=person_data["id"], new_author_id=int(message.text))
+        await message.answer(text="Успешно")
+    except ValueError:
+        await message.answer(text="Вводите id автора цифрами")
     finally:
         await state.finish()
