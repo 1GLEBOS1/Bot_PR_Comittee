@@ -21,8 +21,12 @@ class DeleteMember(StatesGroup):
     get_telegram_id = State()
 
 
-class ViewStats(StatesGroup):
+class ViewStatsEevnt(StatesGroup):
     get_event_id = State()
+
+
+class ViewStatsAuthor(StatesGroup):
+    get_author_id = State()
 
 
 class ChangeAuthorId(StatesGroup):

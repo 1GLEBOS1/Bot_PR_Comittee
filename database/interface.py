@@ -72,20 +72,23 @@ class InterfaceStatistic:
     """
 
     @staticmethod
+    def create_db():
+        Statistic.create_table()
+
+    @staticmethod
     def add_statistic(statistic_: str, author_id_: int, event_id_: int):
         """
         This function adds statistic to database
         """
-        print(author_id_, event_id_, statistic_)
         Statistic.create(author_id=author_id_, event_id=event_id_, statistic=statistic_)
 
     @staticmethod
-    def get_statistic(event_id: int):
+    def get_statistic_by_event_id(event_id: int):
         """
         This function returns full statistic of event
         """
-        raw_data = Statistic.select().where(Statistic.event_id == event_id)
-        output_data = [data for data in raw_data]
+        query = Statistic.select().where(Statistic.event_id == event_id)
+        output_data = [data for data in query]
         return output_data
 
     @staticmethod
@@ -97,15 +100,25 @@ class InterfaceStatistic:
         return record
 
     @staticmethod
-    def create_db():
-        Statistic.create_table()
+    def get_statistic_by_author_id(author_id: int):
+        query = Statistic.select().where(Statistic.author_id == author_id)
+        output_data = [data for data in query]
+        return output_data
 
-    def get_statistic_(self, event_id: int):
-        data = self.get_statistic(event_id)
+    def get_statistic(self, type_of_data: str, needed_id: int):
+
+        if type_of_data == "author":
+            data = self.get_statistic_by_author_id(needed_id)
+        elif type_of_data == "event":
+            data = self.get_statistic_by_event_id(needed_id)
+        else:
+            raise TypeError("Unknown type of sorting")
+
         output = ""
         for i in data:
-            output += f"id: {i.id}, event id: {i.event_id}, author id: {i.author_id} " \
-                      f"stats: {i.statistic}\n"
+            output += f"id: {i.id}, event id: {i.event_id}, " \
+                      f"author id: {InterfacePRCommitteeMember.get_telegram_id(i.author_id)}, stats: {i.statistic}\n"
+
         return output
 
     @staticmethod

@@ -3,21 +3,11 @@ from database.interface import InterfaceStatistic
 
 class Analyser:
 
-    # Keys for dicts
-    keys = [
-        [
-            'Паблики', 'Общее количество', 'Ответивших', 'Зарегистрировавшихся'
-        ],
-        [
-                'Знакомые', 'Общее количество', 'Ответивших', 'Зарегистрировавшихся'
-        ]
-    ]
-
     @staticmethod
     def get_data_from_database(event_id: int):
 
         # Getting raw data
-        data = InterfaceStatistic.get_statistic(event_id)
+        data = InterfaceStatistic.get_statistic_by_event_id(event_id)
         if len(data) == 0:
             return None
 

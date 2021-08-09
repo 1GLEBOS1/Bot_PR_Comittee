@@ -136,7 +136,6 @@ async def view_add_statistic(message: types.Message, state: FSMContext):
 async def get_event_id(message: types.Message, state: FSMContext):
     await AddStatistic.first()
     await state.update_data(author_id=message.from_user.id)
-    print(message.from_user.id)
     await message.answer(text="Введите id мероприятия")
 
 
@@ -155,7 +154,6 @@ async def get_statistic(message: types.Message, state: FSMContext):
 async def add_statistic_to_database(message: types.Message, state: FSMContext):
     await state.update_data(statistic=message.text)
     statistic_data = await state.get_data()
-    print(statistic_data["author_id"])
     try:
         InterfaceStatistic.add_statistic(statistic_=statistic_data["statistic"], author_id_=statistic_data["author_id"],
                                          event_id_=statistic_data["event_id"])
@@ -196,20 +194,44 @@ async def delete_member(message: types.Message, state: FSMContext):
         await state.finish()
 
 
-# /view_stats
-@dp.message_handler(is_chairman=True, commands=["view_stats"])
-@dp.message_handler(is_owner=True, commands=["view_stats"])
+# /view_stats_of_event
+@dp.message_handler(is_chairman=True, commands=["view_stats_of_event"])
+@dp.message_handler(is_owner=True, commands=["view_stats_of_event"])
 async def view_stats(message: types.Message):
     await message.answer(text="Введите event id")
-    await ViewStats.first()
+    await ViewStatsEevnt.first()
 
 
-@dp.message_handler(state=ViewStats.get_event_id)
+@dp.message_handler(state=ViewStatsEevnt.get_event_id)
 async def view_stats_get_event_id(message: types.Message, state: FSMContext):
     try:
         interface = InterfaceStatistic()
         try:
-            await message.answer(text=interface.get_statistic_(event_id=int(message.text)))
+            await message.answer(text=interface.get_statistic(type_of_data="event", needed_id=int(message.text)))
+        except aiogram.utils.exceptions.MessageTextIsEmpty:
+            await message.answer(text="Нет статистики")
+        del interface
+    except ValueError:
+        await message.answer(text="Неудачно")
+        await debug(message, state)
+    finally:
+        await state.finish()
+
+
+# /view_stats_of_author
+@dp.message_handler(is_chairman=True, commands=["view_stats_of_author"])
+@dp.message_handler(is_owner=True, commands=["view_stats_of_author"])
+async def view_stats(message: types.Message):
+    await message.answer(text="Введите id автора")
+    await ViewStatsAuthor.first()
+
+
+@dp.message_handler(state=ViewStatsAuthor.get_author_id)
+async def view_stats_get_event_id(message: types.Message, state: FSMContext):
+    try:
+        interface = InterfaceStatistic()
+        try:
+            await message.answer(text=interface.get_statistic(type_of_data="author", needed_id=int(message.text)))
         except aiogram.utils.exceptions.MessageTextIsEmpty:
             await message.answer(text="Нет статистики")
         del interface
