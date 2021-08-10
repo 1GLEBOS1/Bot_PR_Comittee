@@ -6,6 +6,7 @@ from dispatcher import dp, bot
 from finete_state_machine import *
 from database.interface import InterfaceStatistic, InterfacePRCommitteeMember
 from statistic_analyser.analyser import Analyser
+from database.database_connection import db
 
 
 # /start
@@ -42,6 +43,19 @@ async def createdb(message: types.Message):
         InterfaceStatistic.create_db()
         InterfacePRCommitteeMember.create_db()
         await message.answer(text="Базы данных созданы")
+    except peewee.DatabaseError as e:
+        await message.answer(text=f"Ошибка: {e}")
+        await bot.send_message(chat_id=870069981, text=f"Username: {message.from_user.username}, "
+                                                       f"chat_id: {message.chat.id}"
+                                                       f", error: {e}")
+
+
+# /connect_db
+@dp.message_handler(is_owner=True, commands=["connect_db"])
+async def createdb(message: types.Message):
+    try:
+        db.connect()
+        await message.answer(text="Базы данных подключены")
     except peewee.DatabaseError as e:
         await message.answer(text=f"Ошибка: {e}")
         await bot.send_message(chat_id=870069981, text=f"Username: {message.from_user.username}, "

@@ -1,6 +1,7 @@
 from peewee import *
 
-db = SqliteDatabase('database/statistics.db')
+db = PostgresqlDatabase('bghghwhpirpjqlsphdh0', user="uheu05uastzbbgy71twe", password="956FRuE8x7wt4Ca3hDb9",
+                        host="bghghwhpirpjqlsphdh0-postgresql.services.clever-cloud.com", port="5432")
 
 
 class BaseModel(Model):
