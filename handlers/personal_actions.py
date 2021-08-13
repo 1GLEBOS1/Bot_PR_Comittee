@@ -1,3 +1,4 @@
+from typing import Optional
 import aiogram.utils.exceptions
 import peewee
 from aiogram import types
@@ -27,12 +28,13 @@ async def help_(message: types.Message):
 @dp.message_handler(is_owner=True, commands=["debug"], state="*")
 @dp.message_handler(is_chairman=True, commands=["debug"], state="*")
 @dp.message_handler(is_pr_comittee_member=True, commands=["debug"], state="*")
-async def debug(message: types.Message, state: FSMContext):
+async def debug(message: types.Message, state: FSMContext, error: Optional[BaseException] = None):
     current_state = await state.get_state()
     await message.answer(text="Машина состояний сброшена, наши программисты уже работают над исправлением ошибки")
     await bot.send_message(chat_id=-554348036, text=f"Username: {message.from_user.username}, "
                                                     f"chat_id: {message.chat.id}, "
-                                                    f"state: {current_state}")
+                                                    f"state: {current_state}, "
+                                                    f"error: {error}")
     await state.finish()
 
 
@@ -143,40 +145,165 @@ async def view_add_statistic(message: types.Message, state: FSMContext):
         await state.finish()
 
 
-# /add_statistic
-@dp.message_handler(is_pr_comittee_member=True, commands=["add_statistic"])
-@dp.message_handler(is_chairman=True, commands=["add_statistic"])
-@dp.message_handler(is_owner=True, commands=["add_statistic"])
-async def get_event_id(message: types.Message, state: FSMContext):
-    await AddStatistic.first()
-    await state.update_data(author_id=message.from_user.id)
+# /add_statistic_manually
+@dp.message_handler(is_pr_comittee_member=True, commands=["add_statistic_manually"])
+@dp.message_handler(is_owner=True, commands=["add_statistic_manually"])
+@dp.message_handler(is_chairman=True, commands=["add_statistic_manually"])
+async def get_event_id_(message: types.Message):
     await message.answer(text="Введите id мероприятия")
+    await AddStatisticManually.first()
 
 
-@dp.message_handler(state=AddStatistic.get_statistic)
+@dp.message_handler(state=AddStatisticManually.get_event_id)
 async def get_statistic(message: types.Message, state: FSMContext):
     try:
         await state.update_data(event_id=int(message.text))
+        await state.update_data(author_id=message.from_user.id)
         await message.answer(text="Введите статистику")
-        await AddStatistic.next()
+        await AddStatisticManually.next()
     except ValueError:
         await message.answer(text="Вводите id мероприятия цифрами")
         await state.finish()
 
 
-@dp.message_handler(state=AddStatistic.add_statistic)
-async def add_statistic_to_database(message: types.Message, state: FSMContext):
-    await state.update_data(statistic=message.text)
-    statistic_data = await state.get_data()
+@dp.message_handler(state=AddStatisticManually.get_statistic)
+async def add_statistic(message: types.Message, state: FSMContext):
     try:
-        InterfaceStatistic.add_statistic(statistic_=statistic_data["statistic"], author_id_=statistic_data["author_id"],
-                                         event_id_=statistic_data["event_id"])
-        await message.answer("Успешно")
-    except peewee.DatabaseError as e:
-        await message.answer(f"Ошибка: {e}")
-        await bot.send_message(chat_id=-554348036,
-                               text=f"Username: {message.from_user.username}, chat_id: {message.chat.id}"
-                                    f", error: {e}")
+        Analyser.get_data([message.text])
+        data = await state.get_data()
+        try:
+            InterfaceStatistic.add_statistic(statistic_=message.text, event_id_=data["event_id"],
+                                             author_id_=data["author_id"])
+            await message.answer(text="Успешно")
+        except peewee.DatabaseError as e:
+            await message.answer(text="Ошибка")
+            await debug(message=message, state=state, error=e)
+
+    except IndexError as e:
+        await message.answer(text="Ошибка")
+        await debug(message=message, state=state, error=e)
+    finally:
+        await state.finish()
+
+
+# /add_statistic_auto
+@dp.message_handler(is_pr_comittee_member=True, commands=["add_statistic_auto"])
+@dp.message_handler(is_chairman=True, commands=["add_statistic_auto"])
+@dp.message_handler(is_owner=True, commands=["add_statistic_auto"])
+async def get_event_id(message: types.Message, state: FSMContext):
+    await AddStatisticAuto.first()
+    await state.update_data(author_id=message.from_user.id)
+    await message.answer(text="Введите id мероприятия")
+
+
+@dp.message_handler(state=AddStatisticAuto.get_statistic)
+async def get_statistic(message: types.Message, state: FSMContext):
+    try:
+        await state.update_data(event_id=int(message.text))
+        await message.answer(text="Введите количество пабликов")
+        await AddStatisticAuto.next()
+    except ValueError:
+        await message.answer(text="Вводите значение цифрами")
+        await state.finish()
+
+
+@dp.message_handler(state=AddStatisticAuto.add_statistic_publics)
+async def add_statistic_to_database(message: types.Message, state: FSMContext):
+    try:
+        await state.update_data(publics=int(message.text))
+        await message.answer(text="Введите общее количество рассылки по пабликам")
+        await AddStatisticAuto.next()
+    except ValueError:
+        await message.answer(text="Вводите значение цифрами")
+        await state.finish()
+
+
+@dp.message_handler(state=AddStatisticAuto.add_statistic_publics_all)
+async def add_statistic_to_database(message: types.Message, state: FSMContext):
+    try:
+        await state.update_data(publics_all=int(message.text))
+        await message.answer(text="Введите количество ответивших на рассылку по пабликам")
+        await AddStatisticAuto.next()
+    except ValueError:
+        await message.answer(text="Вводите значение цифрами")
+        await state.finish()
+
+
+@dp.message_handler(state=AddStatisticAuto.add_statistic_publics_responsed)
+async def add_statistic_to_database(message: types.Message, state: FSMContext):
+    try:
+        await state.update_data(publics_responsed=int(message.text))
+        await message.answer(text="Введите количество зарегистрировавшихся по рассылке по пабликам")
+        await AddStatisticAuto.next()
+    except ValueError:
+        await message.answer(text="Вводите значение цифрами")
+        await state.finish()
+
+
+@dp.message_handler(state=AddStatisticAuto.add_statistic_publics_registered)
+async def get_statistic(message: types.Message, state: FSMContext):
+    try:
+        await state.update_data(publics_registered=int(message.text))
+        await message.answer(text="Введите количество знакомых")
+        await AddStatisticAuto.next()
+    except ValueError:
+        await message.answer(text="Вводите значение цифрами")
+        await state.finish()
+
+
+@dp.message_handler(state=AddStatisticAuto.add_statistic_familiar)
+async def get_statistic(message: types.Message, state: FSMContext):
+    try:
+        await state.update_data(familiar=int(message.text))
+        await message.answer(text="Введите общее количество рассылки по знакомым")
+        await AddStatisticAuto.next()
+    except ValueError:
+        await message.answer(text="Вводите значение цифрами")
+        await state.finish()
+
+
+@dp.message_handler(state=AddStatisticAuto.add_statistic_familiar_all)
+async def add_statistic_to_database(message: types.Message, state: FSMContext):
+    try:
+        await state.update_data(familiar_all=int(message.text))
+        await message.answer(text="Введите количество ответивших на рассылку по знакомым")
+        await AddStatisticAuto.next()
+    except ValueError:
+        await message.answer(text="Вводите значение цифрами")
+        await state.finish()
+
+
+@dp.message_handler(state=AddStatisticAuto.add_statistic_familiar_responsed)
+async def add_statistic_to_database(message: types.Message, state: FSMContext):
+    try:
+        await state.update_data(familiar_responsed=int(message.text))
+        await message.answer(text="Введите количество зарегистрировавшихся по рассылке по знакомым")
+        await AddStatisticAuto.next()
+    except ValueError:
+        await message.answer(text="Вводите значение цифрами")
+        await state.finish()
+
+
+@dp.message_handler(state=AddStatisticAuto.add_statistic_familiar_registered)
+async def add_statistic_to_database(message: types.Message, state: FSMContext):
+    try:
+        await state.update_data(familiar_registered=int(message.text))
+        fsm_data = await state.get_data()
+        InterfaceStatistic.add_statistic(
+            statistic_=f"Паблики:{fsm_data['publics']}\n"
+                       f"Общее количество:{fsm_data['publics_all']}\n"
+                       f"Ответивших:{fsm_data['publics_responsed']}\n"
+                       f"Зарегистрировавшихся:{fsm_data['publics_registered']}\n"
+                       f"Знакомые:{fsm_data['familiar']}\n"
+                       f"Общее количество:{fsm_data['familiar_all']}\n"
+                       f"Ответивших:{fsm_data['familiar_responsed']}\n"
+                       f"Зарегистрировавшихся:{fsm_data['familiar_registered']}",
+            event_id_=fsm_data["event_id"],
+            author_id_=fsm_data["author_id"]
+                                         )
+        await message.answer(text="Успешно")
+    except ValueError:
+        await message.answer(text="Вводите значение цифрами")
     finally:
         await state.finish()
 

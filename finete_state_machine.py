@@ -12,9 +12,22 @@ class ViewStatistic(StatesGroup):
     get_event_id = State()
 
 
-class AddStatistic(StatesGroup):
+class AddStatisticAuto(StatesGroup):
     get_statistic = State()
-    add_statistic = State()
+    add_statistic_publics = State()
+    add_statistic_publics_all = State()
+    add_statistic_publics_responsed = State()
+    add_statistic_publics_registered = State()
+    add_statistic_familiar = State()
+    add_statistic_familiar_all = State()
+    add_statistic_familiar_responsed = State()
+    add_statistic_familiar_registered = State()
+    add_statistic_to_database = State()
+
+
+class AddStatisticManually(StatesGroup):
+    get_event_id = State()
+    get_statistic = State()
 
 
 class DeleteMember(StatesGroup):
